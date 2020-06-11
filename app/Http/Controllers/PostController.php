@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use App\Models\Post;
 use Elasticsearch\ClientBuilder;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class PostController extends Controller
 {
@@ -22,7 +22,7 @@ class PostController extends Controller
         $this->postModel = $postModel;
         $this->elasticsearch = ClientBuilder::create()->build();
     }
-    
+
     public function createIndex()
     {
         $data = $this->postModel->getDataCreateIndexListPost();
@@ -30,62 +30,62 @@ class PostController extends Controller
 
         return response()->json([
             "data" => [
-                'Create Index Successful'
-            ]
-        ], Response::HTTP_OK); 
+                'Create Index Successful',
+            ],
+        ], Response::HTTP_OK);
     }
 
     public function createDetailIndex($id)
     {
         $post = $this->postModel->getDetail($id);
-    
+
         $this->_processCreateNewIndex($post);
 
         return response()->json([
             "data" => [
-                $post
-            ]
-        ], Response::HTTP_OK); 
+                $post,
+            ],
+        ], Response::HTTP_OK);
     }
 
     public function index()
     {
-//         $da = $this->elasticsearch->cluster()->stats();
-// print_r($da);die;
         $input = $this->request->all();
-        $query = [];
 
-        if (!empty($input['title'])) {
-            $query = [
-                'match' => [
-                    "title" => $input['title']
-                ],
-            ];
-        }
+        $limit = $input['limit'] ?? 20;
+        $page = $input['page'] ?? 1;
+        $sort = $input['sort'] ?? ['id' => 'asc'];
 
         $params = [
             'index' => Post::ELASTIC_INDEX,
             'type' => Post::ELASTIC_TYPE,
             'body' => [
-                'query' => $query
                 //"_source" => [ "title", "slug", "content" ], // show field
-                //'size' => 1, // limit
-             ]
+                'size' => $limit, // limit
+                'from' => $limit * ($page - 1),
+                "sort" => $sort,
+            ],
         ];
-        
+
+        if (!empty($input['title'])) {
+            $params['body']['query'] = [
+                'match' => [
+                    "title" => $input['title'],
+                ],
+            ];
+        }
+
         try {
             $items = $this->elasticsearch->search($params);
 
-            //$hits = array_pluck($items['hits']['hits'], '_source') ?: [];
+            $hits = array_pluck($items['hits']['hits'], '_source') ?: [];
 
             return response()->json([
-                "data" => [
-                    $items
-                    ]
+                "data" => $hits,
             ], Response::HTTP_OK);
         } catch (Exception $e) {
             return response()->json([
-                "message" => $e->getMessage()
+                "message" => $e->getMessage(),
             ], $e->getCode());
         }
     }
@@ -95,25 +95,47 @@ class PostController extends Controller
         $params = [
             'index' => Post::ELASTIC_INDEX,
             'type' => Post::ELASTIC_TYPE,
-            'id'    => $id
+            'id' => $id,
         ];
 
         try {
             $post = $this->postModel->getDetail($id);
-            try {
-                $get_doc = $this->elasticsearch->get($params);
-            } catch (ElasticsearchException $e) {
+
+            $isExistDoc = $this->elasticsearch->exists($params);
+            if ($isExistDoc) {
+                $get_doc = $this->elasticsearch->getSource($params);
+            } else {
+                $data = [
+                    'index' => Post::ELASTIC_INDEX,
+                    'type' => Post::ELASTIC_TYPE,
+                    'id' => $post->id,
+                    'body' => [
+                        'id' => $post->id,
+                        'title' => $post->title,
+                        'slug' => $post->slug,
+                        'content' => $post->content,
+                        'created_at' => $post->created_at,
+                        'updated_at' => $post->updated_at,
+                    ],
+                ];
+
+                $create_doc = $this->elasticsearch->index($data);
+
+                $this->elasticsearch->indices()->refresh();
+
+                $get_doc = $this->elasticsearch->getSource($params);
             }
-            //$get_source = $this->elasticsearch->getSource($params);
+
+            //$get = $this->elasticsearch->get($params);
 
             return response()->json([
                 "data" => [
-                    $get_doc
-                ]
+                    $get_doc,
+                ],
             ], Response::HTTP_OK);
         } catch (Exception $e) {
             return response()->json([
-                "message" => $e->getMessage()
+                "message" => $e->getMessage(),
             ], $e->getCode());
         }
     }
@@ -124,13 +146,27 @@ class PostController extends Controller
 
         $post = $this->postModel->store($input);
 
-        $this->_processCreateNewIndex($post);
+        $data = [
+            'index' => Post::ELASTIC_INDEX,
+            'type' => Post::ELASTIC_TYPE,
+            'id' => $post->id,
+            'body' => [
+                'id' => $post->id,
+                'title' => $post->title,
+                'slug' => $post->slug,
+                'content' => $post->content,
+                'created_at' => $post->created_at,
+                'updated_at' => $post->updated_at,
+            ],
+        ];
+
+        $response = $this->elasticsearch->index($data);
 
         return response()->json([
             "data" => [
-                $post
-            ]
-        ], Response::HTTP_OK); 
+                $post,
+            ],
+        ], Response::HTTP_OK);
     }
 
     public function update($id)
@@ -139,31 +175,53 @@ class PostController extends Controller
         $input = $this->request->all();
         $post = $this->postModel->updatePost($id, $input);
 
-        $params = [
+        $params_exist = [
             'index' => Post::ELASTIC_INDEX,
             'type' => Post::ELASTIC_TYPE,
             'id' => $id,
-            'body' => [
-                'id' => $post->id,
-                'title' => $post->title,
-                'slug' => $post->slug,
-                'content' => $post->content,
-                'created_at' => $post->created_at,
-                'updated_at' => $post->updated_at
-            ]
         ];
+        $isExistDoc = $this->elasticsearch->exists($params_exist);
+        if ($isExistDoc) {
+            $params = [
+                'index' => Post::ELASTIC_INDEX,
+                'type' => Post::ELASTIC_TYPE,
+                'id' => $id,
+                'body' => [
+                    'doc' => [
+                        'id' => $post->id,
+                        'title' => $post->title,
+                        'slug' => $post->slug,
+                        'content' => $post->content,
+                        'created_at' => $post->created_at,
+                        'updated_at' => $post->updated_at,
+                    ],
+                ],
+            ];
 
-        $response = $this->elasticsearch->update($params);
-        // delete current index
-        // $this->_processDeleteDocument($id);
-        // create new index
-        // $this->_processCreateNewIndex($post);
+            $response = $this->elasticsearch->update($params);
+        } else {
+            $data = [
+                'index' => Post::ELASTIC_INDEX,
+                'type' => Post::ELASTIC_TYPE,
+                'id' => $post->id,
+                'body' => [
+                    'id' => $post->id,
+                    'title' => $post->title,
+                    'slug' => $post->slug,
+                    'content' => $post->content,
+                    'created_at' => $post->created_at,
+                    'updated_at' => $post->updated_at,
+                ],
+            ];
+
+            $response = $this->elasticsearch->index($data);
+        }
 
         return response()->json([
             "data" => [
-                $post
-            ]
-        ], Response::HTTP_OK); 
+                $post,
+            ],
+        ], Response::HTTP_OK);
     }
 
     public function deleteIndex()
@@ -173,12 +231,12 @@ class PostController extends Controller
 
             return response()->json([
                 "data" => [
-                    $response
-                ]
+                    $response,
+                ],
             ], Response::HTTP_OK);
         } catch (Exception $e) {
             return response()->json([
-                "message" => $e->getMessage()
+                "message" => $e->getMessage(),
             ], $e->getCode());
         }
     }
@@ -186,50 +244,28 @@ class PostController extends Controller
     public function deleteDetailIndex($id)
     {
         try {
-            $response = $this->_processDeleteDocument($id);
+            $params = [
+                'index' => Post::ELASTIC_INDEX,
+                'type' => Post::ELASTIC_TYPE,
+                'id' => $id,
+            ];
+
+            $response = $this->elasticsearch->delete($params);
 
             return response()->json([
                 "data" => [
-                    $response
-                ]
+                    $response,
+                ],
             ], Response::HTTP_OK);
         } catch (Exception $e) {
             return response()->json([
-                "message" => $e->getMessage()
+                "message" => $e->getMessage(),
             ], $e->getCode());
         }
     }
 
-    private function _processCreateNewIndex($model)
-    {
-        $data = [
-            'index' => Post::ELASTIC_INDEX,
-            'type' => Post::ELASTIC_TYPE,
-            'id' => $model->id,
-            'body' => [
-                'id' => $model->id,
-                'title' => $model->title,
-                'slug' => $model->slug,
-                'content' => $model->content,
-                'created_at' => $model->created_at,
-                'updated_at' => $model->updated_at
-            ]
-        ];
-
-        $response = $this->elasticsearch->index($data);
-
-        return $response;
-    }
-
     private function _processDeleteDocument($id)
     {
-        $params = [
-            'index' => Post::ELASTIC_INDEX,
-            'type' => Post::ELASTIC_TYPE,
-            'id' => $id
-        ];
-
-        $response = $this->elasticsearch->delete($params);
 
         return $response;
     }
