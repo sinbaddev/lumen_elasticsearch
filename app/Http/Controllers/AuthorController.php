@@ -3,29 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\Post;
+use App\Models\Author;
 use Elasticsearch\ClientBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-class PostController extends Controller
+class AuthorController extends Controller
 {
     protected $request;
-    protected $postModel;
+    protected $authorModel;
     protected $elasticsearch;
     private $_msgErrorNotExist = 'The index does not exist.';
+
     public function __construct(
         Request $request,
-        Post $postModel
+        Author $authorModel
     ) {
         $this->request = $request;
-        $this->postModel = $postModel;
+        $this->authorModel = $authorModel;
         $this->elasticsearch = ClientBuilder::create()->build();
     }
 
     public function createIndex()
     {
-        $data = $this->postModel->getDataCreateIndexListPost();
+        $data = $this->authorModel->getDataCreateIndexListAuthor();
         $response = $this->elasticsearch->bulk($data);
 
         return response()->json([
@@ -35,18 +36,31 @@ class PostController extends Controller
         ], Response::HTTP_OK);
     }
 
+    public function createDetailIndex($id)
+    {
+        $author = $this->authorModel->getDetail($id);
+
+        $this->_processCreateNewIndex($author);
+
+        return response()->json([
+            "data" => [
+                $author,
+            ],
+        ], Response::HTTP_OK);
+    }
+
     public function index()
     {
-        $input = $this->request->all();
-
-        $isExistIndex = $this->elasticsearch->indices()->exists($this->postModel->getParamIndex());
+        $isExistIndex = $this->elasticsearch->indices()->exists($this->authorModel->getParamIndex());
         if (!$isExistIndex) {
             return response()->json([
                 "error" => $this->_msgErrorNotExist
             ], 404);
         }
-        
-        $params = $this->postModel->getParamIndex(1, null, 1, $input);
+        $input = $this->request->all();
+
+        $params = $this->authorModel->getParamIndex(1, null, 1, $input);
+       
         try {
             $items = $this->elasticsearch->search($params);
 
@@ -64,16 +78,16 @@ class PostController extends Controller
 
     public function detail($id)
     {
-        $params = $this->postModel->getParamIndex(1, $id, 0, []);
+        $params = $this->authorModel->getParamIndex(1, $id, 0, []);
 
         try {
-            $post = $this->postModel->getDetail($id);
+            $author = $this->authorModel->getDetail($id);
 
             $isExistDoc = $this->elasticsearch->exists($params);
             if ($isExistDoc) {
                 $get_doc = $this->elasticsearch->get($params);
             } else {
-                $data = $this->postModel->getDataIndex($post);
+                $data = $this->authorModel->getDataIndex($author);
 
                 $create_doc = $this->elasticsearch->index($data);
 
@@ -100,15 +114,15 @@ class PostController extends Controller
     {
         $input = $this->request->all();
 
-        $post = $this->postModel->store($input);
+        $author = $this->authorModel->store($input);
 
-        $data = $this->postModel->getDataIndex($post);
+        $data = $this->authorModel->getDataIndex($author);
 
         $response = $this->elasticsearch->index($data);
 
         return response()->json([
             "data" => [
-                $post,
+                $author,
             ],
         ], Response::HTTP_OK);
     }
@@ -117,32 +131,31 @@ class PostController extends Controller
     {
         // update data post
         $input = $this->request->all();
-        $post = $this->postModel->updatePost($id, $input);
+        $author = $this->authorModel->updateAuthor($id, $input);
 
-        $params_exist = $this->postModel->getParamIndex(1, $id, 0, []);
+        $params_exist = $this->authorModel->getParamIndex(1, $id, 0, []);
 
         $isExistDoc = $this->elasticsearch->exists($params_exist);
         if ($isExistDoc) {
-            $data = $this->postModel->getDataIndex($post, 1);
+            $data = $this->authorModel->getDataIndex($author, 1);
 
             $response = $this->elasticsearch->update($data);
         } else {
-            $data = $this->postModel->getDataIndex($post);
+            $data = $this->authorModel->getDataIndex($author);
 
             $response = $this->elasticsearch->index($data);
         }
 
         return response()->json([
             "data" => [
-                $post,
+                $author,
             ],
         ], Response::HTTP_OK);
     }
 
     public function deleteIndex()
     {
-        $params = $this->postModel->getParamIndex();
-
+        $params = $this->authorModel->getParamIndex(0, null, 0, []);
         try {
             $isExistIndex = $this->elasticsearch->indices()->exists($params);
             if (!$isExistIndex) {
@@ -168,7 +181,7 @@ class PostController extends Controller
     public function deleteDetailIndex($id)
     {
         try {
-            $params = $this->postModel->getParamIndex(1, $id, 0, []);
+            $params = $this->authorModel->getParamIndex(1, $id, 0, []);
 
             $isExistDoc = $this->elasticsearch->exists($params);
             if (!$isExistDoc) {

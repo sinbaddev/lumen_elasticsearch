@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
-class Post extends Model
-{
-    const ELASTIC_INDEX = 'post_index';
-    const ELASTIC_TYPE = 'post_type';
 
-    protected $table = 'posts';
+class Author extends Model
+{
+    const ELASTIC_INDEX = 'author_index';
+    const ELASTIC_TYPE = 'author_type';
+
+    protected $table = 'authors';
 
     protected $primaryKey = 'id';
     /**
@@ -18,7 +19,7 @@ class Post extends Model
      * @var array
      */
     protected $fillable = [
-        'title', 'slug', 'content'
+        'name'
     ];
 
     public function getCreatedAtAttribute($date)
@@ -31,41 +32,41 @@ class Post extends Model
         return Carbon::parse($date)->format('Y-m-d');
     }
 
-    public function author()
+    public function posts()
     {
-        return $this->belongsTo(Author::class);
+        return $this->hasMany(Post::class);
     }
 
     public function getList()
     {
-        $posts = Post::limit(5000)->get();
+        $authors = Author::all();
         
-        return $posts;
+        return $authors;
     }
 
     public function getDetail($id)
     {
-        $post = Post::findOrFail($id);  
+        $author = Author::findOrFail($id);  
 
-        return $post;
+        return $author;
     }
 
-    public function getDataCreateIndexListPost($input = [])
+    public function getDataCreateIndexListAuthor($input = [])
     {
-        $posts = $this->getList();
+        $authors = $this->getList();
 
         $data = [];
 
-        foreach ($posts as $key => $post) {
+        foreach ($authors as $key => $author) {
             $data['body'][] = [
                 'index' => [
                     '_index' => self::ELASTIC_INDEX,
                     '_type' => self::ELASTIC_TYPE,
-                    '_id' => $post->id,
+                    '_id' => $author->id,
                 ]
             ];
 
-            $data['body'][] = $this->transformData($post);
+            $data['body'][] = $this->transformData($author);
         }
 
         return $data;
@@ -73,32 +74,28 @@ class Post extends Model
 
     public function store($input)
     {
-        $post = Post::create($input);  
-        return $post;
+        $author = Author::create($input);  
+        return $author;
     }
 
-    public function updatePost($id, $input)
+    public function updateAuthor($id, $input)
     {
-        $post = Post::findOrFail($id);
-        $post->fill($input);
+        $author = Author::findOrFail($id);
+        $author->fill($input);
 
-        if ($post->save()) {
-            return $post;
+        if ($author->save()) {
+            return $author;
         }
         return false;
     }
 
-    public function transformData($post)
+    public function transformData($author)
     {
         $data = [
-            'id' => $post->id,
-            'title' => $post->title,
-            'slug' => $post->slug,
-            'content' => $post->content,
-            'author_id' => $post->author_id,
-            //'author_name' => object_get($post, 'author.name', ''),
-            'created_at' => $post->created_at,
-            'updated_at' => $post->updated_at,
+            'id' => $author->id,
+            'name' => $author->name,
+            'created_at' => $author->created_at,
+            'updated_at' => $author->updated_at,
         ];
 
         return $data;
@@ -118,20 +115,18 @@ class Post extends Model
             $params['id'] = $id;
         }
 
-        if ($is_search == 1) {
+        if (!empty($input) && (count($input) > 0) && $is_search == 1) {
             $limit = $input['limit'] ?? 20;
             $page = $input['page'] ?? 1;
             $sort = $input['sort'] ?? ['id' => 'asc'];
+            $is_query = 0;
 
             $params['body'] = [
                 'size' => $limit, // limit
                 'from' => $limit * ($page - 1),
                 "sort" => $sort,
             ];
-        }
 
-        if (!empty($input) && (count($input) > 0)) {
-            $is_query = 0;
             if (!empty($input['created_at'])) {
                 $is_query = 1;
                 $query['range']['created_at'] = ['gte' => $input['created_at'], 'format' => 'yyyy-MM-dd'];
@@ -141,15 +136,10 @@ class Post extends Model
                 $is_query = 1;
                 $query['range']['updated_at'] = ['gte' => $input['updated_at'], 'format' => 'yyyy-MM-dd'];
             }
-
-            if (!empty($input['title'])) {
-                $is_query = 1;
-                $query['match']['title'] = $input['title'];
-            }
     
             if (!empty($input['name'])) {
                 $is_query = 1;
-                $query['match']['name'] = $input['name'];
+                $query['match'] = ['name' => $input['name']];
             }
     
             if ($is_query == 1) {
@@ -160,18 +150,18 @@ class Post extends Model
         return $params;
     }
 
-    public function getDataIndex($post, $is_doc = 0)
+    public function getDataIndex($author, $is_doc = 0)
     {
         $data = [
             'index' => self::ELASTIC_INDEX,
             'type' => self::ELASTIC_TYPE,
-            'id' => $post->id,
-            'body' => $this->transformData($post),
+            'id' => $author->id,
+            'body' => $this->transformData($author),
         ];
 
         if ($is_doc == 1) {
             $data['body'] = [
-                'doc' => $this->transformData($post),
+                'doc' => $this->transformData($author),
             ];
         }
 

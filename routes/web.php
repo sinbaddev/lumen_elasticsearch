@@ -10,7 +10,6 @@
 | and give it the Closure to call when that URI is requested.
 |
 */
-use App\Models\Post;
 
 $app->get('/', function () use ($app) {
     return $app->version();
@@ -18,11 +17,20 @@ $app->get('/', function () use ($app) {
 
 $app->group(['prefix' => 'post'], function ($api) {
     $api->post('/create-index', 'PostController@createIndex');
-    $api->post('/create-detail-index/{id:[0-9]+}', 'PostController@createDetailIndex');
     $api->get('/', 'PostController@index');
     $api->get('/{id:[0-9]+}', 'PostController@detail');
     $api->delete('/delete-index', 'PostController@deleteIndex');
     $api->post('/', 'PostController@store');
-    $api->put('/{id:[0-9]+}', 'PostController@update');
     $api->delete('/{id:[0-9]+}/delete-index', 'PostController@deleteDetailIndex');
+    $api->put('/{id:[0-9]+}', 'PostController@update');
+});
+
+$app->group(['prefix' => 'author'], function ($api) {
+    $api->post('/create-index', 'AuthorController@createIndex');
+    $api->get('/', 'AuthorController@index');
+    $api->get('/{id:[0-9]+}', 'AuthorController@detail');
+    $api->delete('/delete-index', 'AuthorController@deleteIndex');
+    $api->post('/', 'AuthorController@store');
+    $api->delete('/{id:[0-9]+}/delete-index', 'AuthorController@deleteDetailIndex');
+    $api->put('/{id:[0-9]+}', 'AuthorController@update');
 });
