@@ -34,3 +34,13 @@ $app->group(['prefix' => 'author'], function ($api) {
     $api->delete('/{id:[0-9]+}/delete-index', 'AuthorController@deleteDetailIndex');
     $api->put('/{id:[0-9]+}', 'AuthorController@update');
 });
+
+$app->group(['prefix' => 'parent-child'], function ($api) {
+    $api->post('/create-index', 'ParentChildController@createIndex');
+    $api->delete('/delete-index', 'ParentChildController@deleteIndex');
+    $api->post('/create-index-data-parent', 'ParentChildController@createIndexDataParent');
+    $api->post('/create-index-data-child', 'ParentChildController@createIndexDataChild');
+    $api->put('/update-index', 'ParentChildController@updateIndex');
+    $api->get('/search-index', 'ParentChildController@searchIndex');
+    $api->get('/search-document', 'ParentChildController@searchDocument');
+});
