@@ -34,6 +34,7 @@ $app->group(['prefix' => 'post'], function ($api) {
 $app->group(['prefix' => 'compound-query'], function ($api) {
     $api->get('/search-bool', 'CompoundQueryController@searchBool');
     $api->get('/search-boosting', 'CompoundQueryController@searchBoosting');
+    $api->get('/search-constant-score', 'CompoundQueryController@searchConstantScore');
 });
 
 $app->group(['prefix' => 'author'], function ($api) {

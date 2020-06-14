@@ -98,7 +98,7 @@ class Post extends Model
             'author_id' => $post->author_id,
             'author_name' => object_get($post, 'author.name', ''),
             'status' => $post->status,
-            'status_name' => $post->status = 1 ? 'Active' : 'Inactive',
+            'status_name' => $post->status == 1 ? 'Active' : 'Inactive',
             'created_at' => $post->created_at,
             'updated_at' => $post->updated_at,
         ];
