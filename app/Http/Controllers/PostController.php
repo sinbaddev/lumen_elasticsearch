@@ -162,6 +162,42 @@ class PostController extends Controller
         ], Response::HTTP_OK);
     }
 
+    public function searchDocumentMatch()
+    {
+        $input = $this->request->all();
+
+        $isExistIndex = $this->elasticsearch->indices()->exists(['index' => Post::ELASTIC_INDEX]);
+        if (!$isExistIndex) {
+            return response()->json([
+                "error" => $this->_msgErrorNotExist,
+            ], 404);
+        }
+
+        $params = [
+            'index' => Post::ELASTIC_INDEX,
+            'type' => Post::ELASTIC_TYPE,
+            'body' => [
+                'query' => [
+                    'match' => ['title' => $input['title']]
+                ]
+            ]
+        ];
+
+        try {
+            $items = $this->elasticsearch->search($params);
+
+            //$hits = array_pluck($items['hits']['hits'], '_source') ?: [];
+
+            return response()->json([
+                "data" => [$items],
+            ], Response::HTTP_OK);
+        } catch (Exception $e) {
+            return response()->json([
+                "message" => $e->getMessage(),
+            ], $e->getCode());
+        }
+    }
+
     public function index()
     {
         $input = $this->request->all();
