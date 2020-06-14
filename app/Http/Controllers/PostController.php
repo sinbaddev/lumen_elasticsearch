@@ -145,6 +145,23 @@ class PostController extends Controller
         }
     }
 
+    public function createDocument()
+    {
+        $input = $this->request->all();
+
+        $post = $this->postModel->store($input);
+
+        $data = $this->postModel->getDataIndex($post);
+
+        $response = $this->elasticsearch->index($data);
+
+        return response()->json([
+            "data" => [
+                $post,
+            ],
+        ], Response::HTTP_OK);
+    }
+
     public function index()
     {
         $input = $this->request->all();
@@ -172,58 +189,7 @@ class PostController extends Controller
         }
     }
 
-    public function detail($id)
-    {
-        $params = $this->postModel->getParamIndex(1, $id, 0, []);
-
-        try {
-            $post = $this->postModel->getDetail($id);
-
-            $isExistDoc = $this->elasticsearch->exists($params);
-            if ($isExistDoc) {
-                $get_doc = $this->elasticsearch->get($params);
-            } else {
-                $data = $this->postModel->getDataIndex($post);
-
-                $create_doc = $this->elasticsearch->index($data);
-
-                $this->elasticsearch->indices()->refresh();
-
-                $get_doc = $this->elasticsearch->get($params);
-            }
-
-            //$get = $this->elasticsearch->get($params);
-
-            return response()->json([
-                "data" => [
-                    $get_doc,
-                ],
-            ], Response::HTTP_OK);
-        } catch (Exception $e) {
-            return response()->json([
-                "message" => $e->getMessage(),
-            ], $e->getCode());
-        }
-    }
-
-    public function store()
-    {
-        $input = $this->request->all();
-
-        $post = $this->postModel->store($input);
-
-        $data = $this->postModel->getDataIndex($post);
-
-        $response = $this->elasticsearch->index($data);
-
-        return response()->json([
-            "data" => [
-                $post,
-            ],
-        ], Response::HTTP_OK);
-    }
-
-    public function update($id)
+    public function updateDocument($id)
     {
         // update data post
         $input = $this->request->all();
@@ -249,7 +215,7 @@ class PostController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function deleteDetailIndex($id)
+    public function deleteDocument($id)
     {
         try {
             $params = $this->postModel->getParamIndex(1, $id, 0, []);
@@ -266,6 +232,40 @@ class PostController extends Controller
             return response()->json([
                 "data" => [
                     $response,
+                ],
+            ], Response::HTTP_OK);
+        } catch (Exception $e) {
+            return response()->json([
+                "message" => $e->getMessage(),
+            ], $e->getCode());
+        }
+    }
+
+    public function detailDocument($id)
+    {
+        $params = $this->postModel->getParamIndex(1, $id, 0, []);
+
+        try {
+            $post = $this->postModel->getDetail($id);
+
+            $isExistDoc = $this->elasticsearch->exists($params);
+            if ($isExistDoc) {
+                $get_doc = $this->elasticsearch->get($params);
+            } else {
+                $data = $this->postModel->getDataIndex($post);
+
+                $create_doc = $this->elasticsearch->index($data);
+
+                $this->elasticsearch->indices()->refresh();
+
+                $get_doc = $this->elasticsearch->get($params);
+            }
+
+            //$get = $this->elasticsearch->get($params);
+
+            return response()->json([
+                "data" => [
+                    $get_doc,
                 ],
             ], Response::HTTP_OK);
         } catch (Exception $e) {
