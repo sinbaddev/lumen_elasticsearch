@@ -160,7 +160,7 @@ class Post extends Model
         return $params;
     }
 
-    public function getDataIndex($post, $is_doc = 0)
+    public function getDataIndex($post, $is_update = 0)
     {
         $data = [
             'index' => self::ELASTIC_INDEX,
@@ -169,7 +169,7 @@ class Post extends Model
             'body' => $this->transformData($post),
         ];
 
-        if ($is_doc == 1) {
+        if ($is_update == 1) {
             $data['body'] = [
                 'doc' => $this->transformData($post),
             ];

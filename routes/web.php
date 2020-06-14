@@ -23,11 +23,14 @@ $app->group(['prefix' => 'post'], function ($api) {
     /* Document */
     $api->post('/create-list-document', 'PostController@createListDocument');
     $api->get('/search-document-pagination', 'PostController@searchDocumentPagination');
+    $api->post('/create-document', 'PostController@createDocument');
+    $api->put('/update-document/{id:[0-9]+}', 'PostController@updateDocument');
+    $api->delete('/delete-document/{id:[0-9]+}', 'PostController@deleteDocument');
+    $api->get('/detail-document/{id:[0-9]+}', 'PostController@detailDocument');
 
     $api->get('/', 'PostController@index');
-    $api->get('/{id:[0-9]+}', 'PostController@detail');
+    
     $api->post('/', 'PostController@store');
-    $api->delete('/{id:[0-9]+}/delete-index', 'PostController@deleteDetailIndex');
     $api->put('/{id:[0-9]+}', 'PostController@update');
 });
 
