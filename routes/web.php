@@ -29,10 +29,11 @@ $app->group(['prefix' => 'post'], function ($api) {
     $api->get('/detail-document/{id:[0-9]+}', 'PostController@detailDocument');
     $api->get('/search-document-match', 'PostController@searchDocumentMatch');
     $api->get('/search-show-field-expect', 'PostController@searchAndShowFieldExpect');
+});
 
-    $api->get('/', 'PostController@index');
-    $api->post('/', 'PostController@store');
-    $api->put('/{id:[0-9]+}', 'PostController@update');
+$app->group(['prefix' => 'compound-query'], function ($api) {
+    $api->get('/search-bool', 'CompoundQueryController@searchBool');
+    $api->get('/search-boosting', 'CompoundQueryController@searchBoosting');
 });
 
 $app->group(['prefix' => 'author'], function ($api) {
