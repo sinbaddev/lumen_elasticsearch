@@ -76,8 +76,6 @@ class PostController extends Controller
             'index' => Post::ELASTIC_INDEX
         ];
 
-        $result = $this->elasticsearch->indices()->get($params);
-
         try {
             $isExistIndex = $this->elasticsearch->indices()->exists($params);
             if (!$isExistIndex) {

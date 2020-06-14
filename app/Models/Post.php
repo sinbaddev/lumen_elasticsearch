@@ -18,7 +18,7 @@ class Post extends Model
      * @var array
      */
     protected $fillable = [
-        'title', 'slug', 'content'
+        'title', 'slug', 'content', 'status'
     ];
 
     public function getCreatedAtAttribute($date)
@@ -38,7 +38,7 @@ class Post extends Model
 
     public function getList()
     {
-        $posts = Post::limit(15000)->get();
+        $posts = Post::limit(15000)->offset(15018)->get();
         
         return $posts;
     }
@@ -97,6 +97,8 @@ class Post extends Model
             'content' => $post->content,
             'author_id' => $post->author_id,
             'author_name' => object_get($post, 'author.name', ''),
+            'status' => $post->status,
+            'status_name' => $post->status = 1 ? 'Active' : 'Inactive',
             'created_at' => $post->created_at,
             'updated_at' => $post->updated_at,
         ];
