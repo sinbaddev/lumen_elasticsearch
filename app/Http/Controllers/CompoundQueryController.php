@@ -28,7 +28,7 @@ class CompoundQueryController extends Controller
         $input = $this->request->all();
         $title = $input['title'] ?? '';
         $status = $input['status'] ?? 1;
-        $sort = ['id' => 'desc'];
+        $sort = ['id' => 'asc'];
 
         $params = [
             'index' => Post::ELASTIC_INDEX,
@@ -45,11 +45,90 @@ class CompoundQueryController extends Controller
                         'must_not' => [
                             'range' => [
                                 'created_at' => ['gte' => '2020-06-06', 'lte' => '2020-06-09'],
-                            ]
+                            ],
                         ], // condition not
                         'should' => [
-                            'term' => ['status' => $status]
-                        ] // condition or
+                            'term' => ['status' => $status],
+                        ], // condition or
+                    ],
+                ],
+            ],
+        ];
+
+        try {
+            $result = $this->elasticsearch->search($params);
+
+            return response()->json([
+                "data" => [
+                    $result,
+                ],
+            ], Response::HTTP_OK);
+        } catch (Exception $e) {
+            return response()->json([
+                "message" => $e->getMessage(),
+            ], $e->getCode());
+        }
+    }
+
+    public function searchBoosting()
+    {
+        $input = $this->request->all();
+        $title = $input['title'] ?? '';
+        $status = $input['status'] ?? 1;
+        $sort = ['id' => 'asc'];
+
+        $params = [
+            'index' => Post::ELASTIC_INDEX,
+            'type' => Post::ELASTIC_TYPE,
+            'body' => [
+                'sort' => $sort,
+                'query' => [
+                    'boosting' => [
+                        'positive' => [
+                            'match' => ['title' => $title],
+                        ],
+                        'negative' => [
+                            'term' => ['status' => $status],
+                        ],
+                        'negative_boost' => 0.5,
+                    ],
+                ],
+            ],
+        ];
+
+        try {
+            $result = $this->elasticsearch->search($params);
+
+            return response()->json([
+                "data" => [
+                    $result,
+                ],
+            ], Response::HTTP_OK);
+        } catch (Exception $e) {
+            return response()->json([
+                "message" => $e->getMessage(),
+            ], $e->getCode());
+        }
+    }
+
+    public function searchConstantScore()
+    {
+        $input = $this->request->all();
+        $title = $input['title'] ?? '';
+        $status = $input['status'] ?? 1;
+        $sort = ['id' => 'asc'];
+
+        $params = [
+            'index' => Post::ELASTIC_INDEX,
+            'type' => Post::ELASTIC_TYPE,
+            'body' => [
+                'sort' => $sort,
+                'query' => [
+                    'constant_score' => [
+                        'filter' => [
+                            'term' => ['status' => $status],
+                        ],
+                        'boost' => 1.2,
                     ],
                 ],
             ],

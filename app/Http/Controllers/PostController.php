@@ -176,6 +176,10 @@ class PostController extends Controller
             'type' => Post::ELASTIC_TYPE,
             'body' => [
                 'query' => [
+                    // 'query_string' => [
+                    //     'query' => $input['title'],
+                    //     'default_field' => 'title'
+                    // ]
                     'match' => ['title' => $input['title']]
                 ]
             ]
