@@ -28,6 +28,7 @@ $app->group(['prefix' => 'post'], function ($api) {
     $api->delete('/delete-document/{id:[0-9]+}', 'PostController@deleteDocument');
     $api->get('/detail-document/{id:[0-9]+}', 'PostController@detailDocument');
     $api->get('/search-document-match', 'PostController@searchDocumentMatch');
+    $api->get('/search-show-field-expect', 'PostController@searchAndShowFieldExpect');
 
     $api->get('/', 'PostController@index');
     $api->post('/', 'PostController@store');
