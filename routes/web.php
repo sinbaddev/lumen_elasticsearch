@@ -29,7 +29,6 @@ $app->group(['prefix' => 'post'], function ($api) {
     $api->get('/detail-document/{id:[0-9]+}', 'PostController@detailDocument');
 
     $api->get('/', 'PostController@index');
-    
     $api->post('/', 'PostController@store');
     $api->put('/{id:[0-9]+}', 'PostController@update');
 });
