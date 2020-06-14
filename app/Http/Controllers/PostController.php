@@ -25,7 +25,84 @@ class PostController extends Controller
 
     public function createIndex()
     {
-        $data = $this->postModel->getDataCreateIndexListPost();
+        $params = [
+            'index' => Post::ELASTIC_INDEX,
+            'type' => Post::ELASTIC_TYPE,
+            'body' => []
+        ];
+
+        try {
+            $response = $this->elasticsearch->index($params);
+
+            return response()->json([
+                "data" => [$response],
+            ], Response::HTTP_OK);
+        } catch (Exception $e) {
+            return response()->json([
+                "message" => $e->getMessage(),
+            ], $e->getCode());
+        }
+    }
+
+    public function deleteIndex()
+    {
+        $params = $this->postModel->getParamIndex();
+
+        try {
+            $isExistIndex = $this->elasticsearch->indices()->exists($params);
+            if (!$isExistIndex) {
+                return response()->json([
+                    "error" => $this->_msgErrorNotExist,
+                ], 404);
+            }
+
+            $response = $this->elasticsearch->indices()->delete($params);
+
+            return response()->json([
+                "data" => [
+                    $response,
+                ],
+            ], Response::HTTP_OK);
+        } catch (Exception $e) {
+            return response()->json([
+                "message" => $e->getMessage(),
+            ], $e->getCode());
+        }
+    }
+
+    public function searchIndex()
+    {
+        $params = [
+            'index' => Post::ELASTIC_INDEX
+        ];
+
+        $result = $this->elasticsearch->indices()->get($params);
+
+        try {
+            $isExistIndex = $this->elasticsearch->indices()->exists($params);
+            if (!$isExistIndex) {
+                return response()->json([
+                    "error" => $this->_msgErrorNotExist,
+                ], 404);
+            }
+
+            $result = $this->elasticsearch->indices()->get($params);
+
+            return response()->json([
+                "data" => [
+                    $result,
+                ],
+            ], Response::HTTP_OK);
+        } catch (Exception $e) {
+            return response()->json([
+                "message" => $e->getMessage(),
+            ], $e->getCode());
+        }
+    }
+
+    public function createListDocument()
+    {
+        $data = $this->postModel->getDataCreateListDocumentPost();
         $response = $this->elasticsearch->bulk($data);
 
         return response()->json([
@@ -35,6 +112,39 @@ class PostController extends Controller
         ], Response::HTTP_OK);
     }
 
+    public function searchDocumentPagination()
+    {
+        $input = $this->request->all();
+        $limit = $input['limit'] ?? 15;
+        $page = $input['page'] ?? 1;
+        $sort = $input['sort'] ?? ['id' => 'asc'];
+
+        $params = [
+            'index' => Post::ELASTIC_INDEX,
+            'type' => Post::ELASTIC_TYPE,
+            'body' => [
+                'size' => $limit,
+                'from' => $limit * ($page - 1),
+                "sort" => $sort,
+            ],
+        ];
+
+        try {
+            $items = $this->elasticsearch->search($params);
+
+            //$hits = array_pluck($items['hits']['hits'], '_source') ?: [];
+
+            return response()->json([
+                "data" => [$items],
+                //"data" => $hits,
+            ], Response::HTTP_OK);
+        } catch (Exception $e) {
+            return response()->json([
+                "message" => $e->getMessage(),
+            ], $e->getCode());
+        }
+    }
+
     public function index()
     {
         $input = $this->request->all();
@@ -42,10 +152,10 @@ class PostController extends Controller
         $isExistIndex = $this->elasticsearch->indices()->exists($this->postModel->getParamIndex());
         if (!$isExistIndex) {
             return response()->json([
-                "error" => $this->_msgErrorNotExist
+                "error" => $this->_msgErrorNotExist,
             ], 404);
         }
-        
+
         $params = $this->postModel->getParamIndex(1, null, 1, $input);
         try {
             $items = $this->elasticsearch->search($params);
@@ -139,32 +249,6 @@ class PostController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function deleteIndex()
-    {
-        $params = $this->postModel->getParamIndex();
-
-        try {
-            $isExistIndex = $this->elasticsearch->indices()->exists($params);
-            if (!$isExistIndex) {
-                return response()->json([
-                    "error" => $this->_msgErrorNotExist
-                ], 404);
-            }
-
-            $response = $this->elasticsearch->indices()->delete($params);
-
-            return response()->json([
-                "data" => [
-                    $response,
-                ],
-            ], Response::HTTP_OK);
-        } catch (Exception $e) {
-            return response()->json([
-                "message" => $e->getMessage(),
-            ], $e->getCode());
-        }
-    }
-
     public function deleteDetailIndex($id)
     {
         try {
@@ -173,9 +257,9 @@ class PostController extends Controller
             $isExistDoc = $this->elasticsearch->exists($params);
             if (!$isExistDoc) {
                 return response()->json([
-                    "error" => $this->_msgErrorNotExist
+                    "error" => $this->_msgErrorNotExist,
                 ], 404);
-            } 
+            }
 
             $response = $this->elasticsearch->delete($params);
 

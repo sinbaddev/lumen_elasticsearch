@@ -28,21 +28,25 @@ class ParentChildController extends Controller
         $params = [
             'index' => $this->_my_index,
             'type' => $this->_my_type,
-            'body' => [
-                // 'mappings' => [
-                //     $this->_my_index => [
-                //         'properties' => [
-                //             'relation_type' => [
-                //                 'type' => 'join',
-                //                 "eager_global_ordinals" => true,
-                //                 'relations' => [
-                //                     "parent" => "child",
-                //                 ],
-                //             ],
-                //         ],
-                //     ]
-                // ],
-            ],
+            'body' => [],
+            // 'body' => [
+            //     'mappings' => [
+            //         $this->_my_type => [
+            //             'properties' => [
+            //                 "my_id" => [
+            //                     "type" => "keyword"
+            //                 ],
+            //                 'relation_type' => [
+            //                     'type' => 'join',
+            //                     "eager_global_ordinals" => true,
+            //                     'relations' => [
+            //                         "question" => "answer",
+            //                     ],
+            //                 ],
+            //             ],
+            //         ]
+            //     ],
+            // ],
         ];
 
         try {
@@ -90,17 +94,17 @@ class ParentChildController extends Controller
         // "relation_type" => ["name" => "parent"],
         $artists = [
             [
-                'id' => 1,
+                'my_id' => 1,
                 'body' => [
-                    "name" => "John Legend",
-                    "relation_type" => ['type' => 'join', "name" => "parent"],
+                    "text" => "This is a question",
+                    "relation_type" => ["name" => "question"],
                 ],
             ],
             [
-                'id' => 2,
+                'my_id' => 2,
                 'body' => [
-                    "name" => "Ariana Grande",
-                    "relation_type" => ['type' => 'join', "name" => "parent"],
+                    "text" => "This is another question",
+                    "relation_type" => ["name" => "question"],
                 ],
             ],
         ];
@@ -110,7 +114,7 @@ class ParentChildController extends Controller
                 $params = [
                     'index' => $this->_my_index,
                     'type' => $this->_my_type,
-                    'id' => $artist['id'],
+                    'id' => $artist['my_id'],
                     'refresh' => true,
                     'body' => $artist['body'],
                 ];
@@ -134,24 +138,16 @@ class ParentChildController extends Controller
                 'id' => 3,
                 'routing' => 1,
                 'body' => [
-                    "song" => "All of Me",
-                    "relation_type" => ['type' => 'join', "name" => "child", "parent" => 1],
+                    "text" => "This is an answer",
+                    "relation_type" => ["name" => "child", "parent" => 1],
                 ],
             ],
             [
                 'id' => 4,
                 'routing' => 1,
                 'body' => [
-                    "song" => "Beauty and the Beast",
-                    "relation_type" => ['type' => 'join', "name" => "child", "parent" => 1],
-                ],
-            ],
-            [
-                'id' => 5,
-                'routing' => 2,
-                'body' => [
-                    "song" => "Beauty and the Beast",
-                    "relation_type" => ['type' => 'join', "name" => "child", "parent" => 2],
+                    "text" => "This is another answer",
+                    "relation_type" => ["name" => "child", "parent" => 1],
                 ],
             ],
         ];
@@ -200,6 +196,32 @@ class ParentChildController extends Controller
             'index' => $this->_my_index,
             'type' => $this->_my_type,
             'body' => [
+                // "query" => [
+                //     "has_child" => [
+                //         "type" => "child",
+                //         "query" => [
+                //             "match_all" => [],
+                //             "max_children" => 10,
+                //             "min_children" => 2,
+                //             "score_mode" => "min",
+                //         ],
+                //     ],
+                // ],
+                // "aggs" => [
+                //     "parents" => [
+                //         "terms" => [
+                //             "field" => "relation_type#question",
+                //             "size" => 10,
+                //         ],
+                //     ],
+                // ],
+                // "script_fields" => [
+                //     "parent" => [
+                //         "script" => [
+                //             "source" => "relation_type#question",
+                //         ],
+                //     ],
+                // ],
                 // 'query' => [
                 //     'bool' => [
                 //         'must' => [

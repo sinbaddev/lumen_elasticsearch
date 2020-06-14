@@ -16,10 +16,16 @@ $app->get('/', function () use ($app) {
 });
 
 $app->group(['prefix' => 'post'], function ($api) {
+    /* Index */
     $api->post('/create-index', 'PostController@createIndex');
+    $api->delete('/delete-index', 'PostController@deleteIndex');
+    $api->get('/search-index', 'PostController@searchIndex');
+    /* Document */
+    $api->post('/create-list-document', 'PostController@createListDocument');
+    $api->get('/search-document-pagination', 'PostController@searchDocumentPagination');
+
     $api->get('/', 'PostController@index');
     $api->get('/{id:[0-9]+}', 'PostController@detail');
-    $api->delete('/delete-index', 'PostController@deleteIndex');
     $api->post('/', 'PostController@store');
     $api->delete('/{id:[0-9]+}/delete-index', 'PostController@deleteDetailIndex');
     $api->put('/{id:[0-9]+}', 'PostController@update');
@@ -33,6 +39,7 @@ $app->group(['prefix' => 'author'], function ($api) {
     $api->post('/', 'AuthorController@store');
     $api->delete('/{id:[0-9]+}/delete-index', 'AuthorController@deleteDetailIndex');
     $api->put('/{id:[0-9]+}', 'AuthorController@update');
+
 });
 
 $app->group(['prefix' => 'parent-child'], function ($api) {

@@ -38,7 +38,7 @@ class Post extends Model
 
     public function getList()
     {
-        $posts = Post::limit(5000)->get();
+        $posts = Post::limit(15000)->get();
         
         return $posts;
     }
@@ -50,7 +50,7 @@ class Post extends Model
         return $post;
     }
 
-    public function getDataCreateIndexListPost($input = [])
+    public function getDataCreateListDocumentPost($input = [])
     {
         $posts = $this->getList();
 
@@ -96,7 +96,7 @@ class Post extends Model
             'slug' => $post->slug,
             'content' => $post->content,
             'author_id' => $post->author_id,
-            //'author_name' => object_get($post, 'author.name', ''),
+            'author_name' => object_get($post, 'author.name', ''),
             'created_at' => $post->created_at,
             'updated_at' => $post->updated_at,
         ];
