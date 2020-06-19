@@ -16,6 +16,8 @@ $app->get('/', function () use ($app) {
 });
 
 $app->group(['prefix' => 'post'], function ($api) {
+    /* */
+    $api->get('/list-post', 'PostController@getListPost');
     /* Index */
     $api->post('/create-index', 'PostController@createIndex');
     $api->delete('/delete-index', 'PostController@deleteIndex');

@@ -38,7 +38,7 @@ class Post extends Model
 
     public function getList()
     {
-        $posts = Post::limit(15000)->offset(15018)->get();
+        $posts = Post::limit(20000)->get();
         
         return $posts;
     }

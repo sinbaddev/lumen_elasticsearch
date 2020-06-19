@@ -7,7 +7,7 @@ use App\Models\Post;
 use Elasticsearch\ClientBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-
+use Illuminate\Support\Facades\Redis;
 class PostController extends Controller
 {
     protected $request;
@@ -343,5 +343,20 @@ class PostController extends Controller
                 "message" => $e->getMessage(),
             ], $e->getCode());
         }
+    }
+
+    public function getListPost()
+    {
+        // print_r(date('H:i:s').'sdddd');
+        // $list = Redis::get('post_list');
+        // print_r(json_decode($list));
+        // print_r(date('H:i:s').'sdddd');die;
+        $list = $this->postModel->getList();
+        Redis::set('post_list', $list);
+        return response()->json([
+            "data" => [
+                'ok',
+            ],
+        ], Response::HTTP_OK);
     }
 }
