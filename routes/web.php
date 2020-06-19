@@ -57,3 +57,8 @@ $app->group(['prefix' => 'parent-child'], function ($api) {
     $api->get('/search-index', 'ParentChildController@searchIndex');
     $api->get('/search-document', 'ParentChildController@searchDocument');
 });
+
+$app->group(['prefix' => 'order'], function ($api) {
+    $api->post('/create-index', 'OrderController@createIndex');
+    $api->delete('/delete-index', 'OrderController@deleteIndex');
+});
