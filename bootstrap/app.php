@@ -23,13 +23,12 @@ $app = new Laravel\Lumen\Application(
     realpath(__DIR__.'/../')
 );
 
-$app->withFacades(true, [
-    Cviebrock\LaravelElasticsearch\Facade::class => 'Elasticsearch',
-]);
+$app->withFacades();
 
 $app->withEloquent();
 
 $app->configure('elasticsearch');
+$app->configure('database');
 /*
 |--------------------------------------------------------------------------
 | Register Container Bindings
@@ -85,6 +84,7 @@ $app->singleton(
 // $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 $app->register(Cviebrock\LaravelElasticsearch\ServiceProvider::class);
+$app->register(Illuminate\Redis\RedisServiceProvider::class);
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
