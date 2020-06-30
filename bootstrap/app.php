@@ -29,6 +29,7 @@ $app->withEloquent();
 
 $app->configure('elasticsearch');
 $app->configure('database');
+$app->configure('swagger-lume');
 /*
 |--------------------------------------------------------------------------
 | Register Container Bindings
@@ -85,6 +86,7 @@ $app->singleton(
 // $app->register(App\Providers\EventServiceProvider::class);
 $app->register(Cviebrock\LaravelElasticsearch\ServiceProvider::class);
 $app->register(Illuminate\Redis\RedisServiceProvider::class);
+$app->register(\SwaggerLume\ServiceProvider::class);
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes

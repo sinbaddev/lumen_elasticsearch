@@ -15,6 +15,12 @@ $app->get('/', function () use ($app) {
     return $app->version();
 });
 
+$app->group(['prefix' => 'swagger', 'namespace' => 'Swagger'], function ($api) {
+    $api->group(['prefix' => 'post'], function ($api) {
+        $api->get('/list', 'PostController@list');
+    });
+});
+
 $app->group(['prefix' => 'post'], function ($api) {
     /* */
     $api->get('/list-post', 'PostController@getListPost');
