@@ -4,7 +4,7 @@ namespace App\Models\Swagger;
 
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
-
+use Illuminate\Support\Str;
 /**
  * @SWG\Definition(definition="Post",required={"title", "content"}, type="object", @SWG\Xml(name="Post"))
  * @SWG\Property(property="id", type="integer", description="Post id"),
@@ -60,6 +60,7 @@ class Post extends Model
 
     public function store($input)
     {
+        $input['slug'] = Str::slug($input['title'], '-');
         $post = Post::create($input);  
 
         return $post;
@@ -67,12 +68,16 @@ class Post extends Model
 
     public function updatePost($id, $input)
     {
-        $post = Post::findOrFail($id);
-        $post->fill($input);
+        $update = Post::where('id', $id)->update($input);
+        $post = $this->getDetail($id);
 
-        if ($post->save()) {
-            return $post;
-        }
-        return false;
+        return $post;
+    }
+
+    public function deletePost($id)
+    {
+        $delete = Post::where('id', $id)->delete();
+
+        return $delete;
     }
 }

@@ -68,6 +68,130 @@
                         "schema": {
                             "$ref": "#/definitions/Post"
                         }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "404": {
+                        "description": "Post not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Update an existing post",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Post Id",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "Post object that needs to be updated to the store",
+                        "required": true,
+                        "schema": {
+                            "properties": {
+                                "title": {
+                                    "description": "Post title",
+                                    "type": "string"
+                                },
+                                "content": {
+                                    "description": "Post content",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "#/definitions/Post"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "404": {
+                        "description": "Post not found"
+                    },
+                    "422": {
+                        "description": "Validation exception"
+                    },
+                    "405": {
+                        "description": "Validation exception"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Delete a post",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Post id to delete",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delete success"
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "404": {
+                        "description": "Post not found"
+                    }
+                }
+            }
+        },
+        "/swagger/post": {
+            "post": {
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Add a new post to the store",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "Post object that needs to be added to the store",
+                        "required": true,
+                        "schema": {
+                            "properties": {
+                                "title": {
+                                    "description": "Post title",
+                                    "type": "string"
+                                },
+                                "content": {
+                                    "description": "Post content",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "#/definitions/Post"
+                        }
+                    },
+                    "405": {
+                        "description": "Invalid input"
                     }
                 }
             }

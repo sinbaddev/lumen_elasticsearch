@@ -20,6 +20,8 @@ $app->group(['prefix' => 'swagger', 'namespace' => 'Swagger'], function ($api) {
         $api->get('/list', 'PostController@list');
         $api->get('/{id:[0-9]+}', 'PostController@detail');
         $api->post('/', 'PostController@store');
+        $api->put('/{id:[0-9]+}', 'PostController@update');
+        $api->delete('/{id:[0-9]+}', 'PostController@delete');
     });
 });
 
