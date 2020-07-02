@@ -1,24 +1,116 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "This is my website cool API",
+        "title": "Swagger for Lumen",
         "description": "Api description...",
-        "termsOfService": "",
-        "contact": {
-            "email": "contact@mysite.com"
-        },
-        "license": {
-            "name": "Private License",
-            "url": "URL to the license"
-        },
         "version": "2.0.0"
     },
-    "host": "http://search.api",
+    "host": "lumen.search.api",
     "basePath": "/",
-    "paths": {},
-    "definitions": {},
-    "externalDocs": {
-        "description": "Find out more about my website",
-        "url": "http..."
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/swagger/post/list": {
+            "get": {
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Get list of posts",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Limit",
+                        "type": "integer"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page",
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "#/definitions/Post"
+                        }
+                    }
+                }
+            }
+        },
+        "/swagger/post/{id}": {
+            "get": {
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Get detail Post",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Post Id",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "#/definitions/Post"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Post": {
+            "required": [
+                "title",
+                "content"
+            ],
+            "properties": {
+                "id": {
+                    "description": "Post id",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "Post title",
+                    "type": "string"
+                },
+                "slug": {
+                    "description": "Post slug",
+                    "type": "string"
+                },
+                "content": {
+                    "description": "Post content",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "Post created date",
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_at": {
+                    "description": "Post updated date",
+                    "type": "string",
+                    "format": "date-time"
+                }
+            },
+            "type": "object",
+            "xml": {
+                "name": "Post"
+            }
+        }
     }
 }

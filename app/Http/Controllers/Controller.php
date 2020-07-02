@@ -10,25 +10,16 @@ use League\Fractal\Resource\Item;
 
 /**
  * @SWG\Swagger(
- *     host="http://search.api",
- *     basePath="/",
- *     @SWG\Info(
+ *      schemes={"http"},
+ *      host="lumen.search.api",
+ *      basePath="/",
+ *      produces={"application/json"},
+ * 		consumes={"application/json"},
+ *      @SWG\Info(
  *         version="2.0.0",
- *         title="This is my website cool API",
+ *         title="Swagger for Lumen",
  *         description="Api description...",
- *         termsOfService="",
- *         @SWG\Contact(
- *             email="contact@mysite.com"
- *         ),
- *         @SWG\License(
- *             name="Private License",
- *             url="URL to the license"
- *         )
- *     ),
- *     @SWG\ExternalDocumentation(
- *         description="Find out more about my website",
- *         url="http..."
- *     )
+ *      )
  * )
  */
 

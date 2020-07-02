@@ -18,6 +18,8 @@ $app->get('/', function () use ($app) {
 $app->group(['prefix' => 'swagger', 'namespace' => 'Swagger'], function ($api) {
     $api->group(['prefix' => 'post'], function ($api) {
         $api->get('/list', 'PostController@list');
+        $api->get('/{id:[0-9]+}', 'PostController@detail');
+        $api->post('/', 'PostController@store');
     });
 });
 
